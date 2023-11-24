@@ -1,4 +1,5 @@
 import type { DidResolutionResult, ParsedDid, DidResolver, AgentContext } from "@aries-framework/core"
+import { JsonTransformer, DidDocument } from "@aries-framework/core"
 
 export class IndyVdrProxyDidResolver implements DidResolver {
   public readonly supportedMethods = ["sov", "indy"]
@@ -26,7 +27,19 @@ export class IndyVdrProxyDidResolver implements DidResolver {
           },
         }
       }
-      return (await response.json()) as DidResolutionResult
+      
+      const respJson = (await response.json()) as DidResolutionResult
+
+      let didDocument = null
+      if (respJson.didDocument) {
+        didDocument = JsonTransformer.fromJSON(respJson.didDocument, DidDocument)
+      }
+      
+      return {
+        ...respJson,
+        didDocument
+      }
+      
     } catch (error) {
       return {
         didDocument: null,
